@@ -1,10 +1,11 @@
+# coding: utf8
 # 需要PATH 下存在python， cflow, dot命令(apt install python3, cflow, graphviz)
 # 原理：使用cflow生成调用关系，grep剔除无用信息，cut提取函数名，然后生成dot文件，方便绘图
 
 import os
 
 max_depth = 20
-rm_dotfile = 1
+rm_dotfile = True
 source, dotfile, svgfile = "blktrace.c", "blktrace.dot", "blktrace.svg"
 
 dotcmd = "cflow -i _ " + source + " | grep -v cflow | grep \< | cut -d'(' -f 1"
@@ -21,6 +22,8 @@ for line in os.popen(dotcmd).readlines():
     stack[space] = line.strip()
     if space != 0:
         out.add('\t\t"' + stack[space - 1] + '" -> "' + stack[space] + '" ;\n')
+    else:
+        out.add('\t\t"' + stack[space] + '" ;\n')
 
 with open(dotfile, "w") as f:
     f.write(start)
@@ -31,4 +34,3 @@ with open(dotfile, "w") as f:
 os.system(svgcmd)
 if rm_dotfile:
     os.system("rm " + dotfile)
-
